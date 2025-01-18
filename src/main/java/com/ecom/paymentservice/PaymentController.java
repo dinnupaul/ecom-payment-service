@@ -1,4 +1,4 @@
-package com.ecom.productcatalogservice;
+package com.ecom.paymentservice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
@@ -10,23 +10,23 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("api/v1/products")
-public class ProductCatalogController
+@RequestMapping("api/v1/payments")
+public class PaymentController
 {
-    private static final Logger logger = LoggerFactory.getLogger(ProductCatalogController.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PaymentController.class.getName());
     @Autowired
-    ProductRepository productRepository;
+    PaymentRepository paymentRepository;
 
     @Autowired
     Producer producer = new Producer();
 
     @PostMapping("/update") // URIs SERVE CHUNKS OF DATA UNLIKE URLs WHICH SERVE PAGES
-    public ResponseEntity<String> updateProductDetails(@RequestBody Product product) throws JsonProcessingException {
-        logger.info("initiating product update in Product Catalog Controller");
-        productRepository.save(product);
-        logger.info(" product update completed successfully in productCatalog Table");
-        logger.info(product.getProductname()," initiating product topic");
-        producer.pubUpdateProductDetailsMessage(product.getProductname(), "PRODUCT DETAILS UPDATED SUCCESSFULLY");
+    public ResponseEntity<String> updateProductDetails(@RequestBody Payment payment) throws JsonProcessingException {
+        logger.info("initiating payment update in Paymentontroller");
+        paymentRepository.save(payment);
+        logger.info(" payment update completed successfully in payment Table");
+        logger.info(payment.getPaymentStatus()," initiating payment topic");
+        producer.pubUpdateProductDetailsMessage(payment.getPaymentStatus(), "PAYMENT DETAILS UPDATED SUCCESSFULLY");
 
         return ResponseEntity.ok("Details Updated Successfully");
     }
@@ -40,8 +40,8 @@ public class ProductCatalogController
     //}
 
     @GetMapping("/getAll")
-    public ResponseEntity<Product> getProduct(@PathVariable String id) {
-        Product product = productRepository.getReferenceById(id);
+    public ResponseEntity<Payment> getProduct(@PathVariable String id) {
+        Payment payment = paymentRepository.getReferenceById(id);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 
                 //new ResponseEntity(product.get(0));

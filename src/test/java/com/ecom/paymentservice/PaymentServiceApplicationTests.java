@@ -1,9 +1,9 @@
-package com.ecom.productcatalogservice;
+package com.ecom.paymentservice;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ProductCatalogServiceApplicationTests {
+class PaymentServiceApplicationTests {
 
     //@Test
     void contextLoads() {
