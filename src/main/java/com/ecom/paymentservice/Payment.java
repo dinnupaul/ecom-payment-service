@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+// import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payment", schema = "payment_service")
@@ -27,6 +28,22 @@ public class Payment {
     private String paymentMethod;
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    public Payment(String paymentId, String customerId, String orderId, Integer amount, String paymentStatus, String paymentMethod
+            //, LocalDateTime createdAt
+    ) {
+        this.paymentId = paymentId;
+        this.customerId = customerId;
+        this.orderId = orderId;
+        this.amount = amount;
+        this.paymentStatus = paymentStatus;
+        this.paymentMethod = paymentMethod;
+      //  this.createdAt = createdAt;
+    }
+
+    public Payment() {
+
+    }
 
     public String getPaymentId() {
         return paymentId;
@@ -86,4 +103,11 @@ public class Payment {
         }
         this.createdAt = createdAt;
     }
+    /*** public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    } **/
 }

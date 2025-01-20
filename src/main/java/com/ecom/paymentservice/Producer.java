@@ -40,4 +40,20 @@ public class Producer
         this.kafkaTemplate.send(TOPIC,datum);
     }
 
+
+    public void publishPaymentStatusMessage(OrderRequest request, String paymentStatus, SagaState sagaState) throws JsonProcessingException {
+        // Publish payment response
+        PaymentEvent paymentEvent = new PaymentEvent(request.getOrderId(), paymentStatus, request, sagaState);
+        String paymentEventJson = objectMapper.writeValueAsString(paymentEvent);
+        kafkaTemplate.send("payment-topic", request.getOrderId(), paymentEventJson);
+    }
+
+
+    public void publishOrderRetryMessage(OrderRequest request, String paymentStatus) throws JsonProcessingException {
+        // Publish inventory response
+        InterimEvent interimEvent = new InterimEvent(request.getOrderId(), "Payment", paymentStatus);
+        String interimEventJson = objectMapper.writeValueAsString(interimEvent);
+        kafkaTemplate.send("order-retry-topic", request.getOrderId(), interimEventJson);
+    }
+
 }
