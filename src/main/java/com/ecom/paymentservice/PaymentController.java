@@ -80,7 +80,12 @@ public class PaymentController
 
 
     public void checkAndPublishPaymentMessage(OrderRequest orderRequest,SagaState  sagaState) throws JsonProcessingException {
-        boolean paymentSuccess = processPayment(orderRequest, true);
+        boolean paymentSuccess = false;
+        if ("INVENTORY_FAILED".equals( sagaState.getCurrentState())){
+            paymentSuccess = false;
+        }else {
+            paymentSuccess = processPayment(orderRequest, true);
+        }
         String paymentStatus = paymentSuccess ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED";
 
         // Publish inventory status event
@@ -88,9 +93,9 @@ public class PaymentController
         sagaState.updateStepStatus("Payment", paymentStatus);
         sagaState.setCurrentState(paymentStatus);
         redisTemplate.opsForValue().set("ORDER_" + orderRequest.getOrderId(), sagaState);
-        if(paymentSuccess) {
+       // if(paymentSuccess) {
             producer.publishPaymentStatusMessage(orderRequest, paymentStatus, sagaState);
-        }
+      //  }
        // producer.publishOrderRetryMessage(orderRequest, paymentStatus);
 
     }

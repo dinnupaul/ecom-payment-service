@@ -29,10 +29,12 @@ public class PaymentConsumer
         InventoryEvent inventoryEvent = mapper.readValue(message, InventoryEvent.class);
         logger.info(String.format("#### -> Consumed message from inventory topic in payment service-> %s", inventoryEvent.getOrderId()));
 
-        if ("INVENTORY_CONFIRMED".equals(inventoryEvent.getInventoryStatus())) {
+      //  if ("INVENTORY_CONFIRMED".equals(inventoryEvent.getInventoryStatus())) {
             // Check product availability
             paymentController.checkAndPublishPaymentMessage(inventoryEvent.getOrderRequest(), inventoryEvent.getSagaState());
-        }
+      //  }else if ("INVENTORY_FAILED".equals(inventoryEvent.getInventoryStatus())) {
+
+      //  }
 
     }
 
