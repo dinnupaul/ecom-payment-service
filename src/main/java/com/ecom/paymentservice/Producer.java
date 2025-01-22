@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -36,14 +37,15 @@ public class Producer
         // convert to JSON
         String datum =  objectMapper.writeValueAsString(analytic);
 
-        logger.info(String.format("#### -> Producing message -> %s", datum));
+        logger.info(String.format("#### -> Producing message payment micro -> %s", datum));
         this.kafkaTemplate.send(TOPIC,datum);
     }
 
 
     public void publishPaymentStatusMessage(OrderRequest request, String paymentStatus, SagaState sagaState) throws JsonProcessingException {
         // Publish payment response
-        PaymentEvent paymentEvent = new PaymentEvent(request.getOrderId(), paymentStatus, request, sagaState);
+        String traceId = MDC.get("traceId");
+        PaymentEvent paymentEvent = new PaymentEvent(request.getOrderId(), paymentStatus, request, sagaState,traceId);
         String paymentEventJson = objectMapper.writeValueAsString(paymentEvent);
         kafkaTemplate.send("payment-topic", request.getOrderId(), paymentEventJson);
     }

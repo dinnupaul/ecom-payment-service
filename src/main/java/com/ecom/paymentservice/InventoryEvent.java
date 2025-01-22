@@ -12,4 +12,5 @@ public class InventoryEvent {
     private String inventoryStatus;
     private OrderRequest orderRequest;
     private SagaState sagaState;
+    private String traceId;
 }

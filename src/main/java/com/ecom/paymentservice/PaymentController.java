@@ -36,13 +36,13 @@ public class PaymentController
 
     @PostMapping("/update") // URIs SERVE CHUNKS OF DATA UNLIKE URLs WHICH SERVE PAGES
     public ResponseEntity<String> updateProductDetails(@RequestBody Payment payment) throws JsonProcessingException {
-        logger.info("initiating payment update in Paymentontroller");
+        logger.info("initiating payment update in Payment Controller");
         paymentRepository.save(payment);
         logger.info(" payment update completed successfully in payment Table");
         logger.info(payment.getPaymentStatus()," initiating payment topic");
         producer.pubUpdateProductDetailsMessage(payment.getPaymentStatus(), "PAYMENT DETAILS UPDATED SUCCESSFULLY");
 
-        return ResponseEntity.ok("Details Updated Successfully");
+        return ResponseEntity.ok("Payment Details Updated Successfully");
     }
 
     public void publishPaymentMessage(String orderId) {
@@ -50,6 +50,7 @@ public class PaymentController
 
 
     public void checkAndPublishPaymentMessage(OrderRequest orderRequest,SagaState  sagaState) throws JsonProcessingException {
+        logger.info("Process payment in payment micro");
         boolean paymentSuccess = false;
         if ("INVENTORY_FAILED".equals( sagaState.getCurrentState())){
             paymentSuccess = false;
@@ -57,17 +58,12 @@ public class PaymentController
             paymentSuccess = processPayment(orderRequest, true);
         }
         String paymentStatus = paymentSuccess ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED";
-
         // Publish inventory status event
-        // logger.info("Publish payment status event");
+        logger.info("Publish payment status event");
         sagaState.updateStepStatus("Payment", paymentStatus);
         sagaState.setCurrentState(paymentStatus);
         redisTemplate.opsForValue().set("ORDER_" + orderRequest.getOrderId(), sagaState);
-       // if(paymentSuccess) {
-            producer.publishPaymentStatusMessage(orderRequest, paymentStatus, sagaState);
-      //  }
-       // producer.publishOrderRetryMessage(orderRequest, paymentStatus);
-
+        producer.publishPaymentStatusMessage(orderRequest, paymentStatus, sagaState);
     }
 
     private boolean processPayment(OrderRequest orderRequest, boolean isPaymentSuccessful) throws JsonProcessingException {
@@ -75,6 +71,7 @@ public class PaymentController
         Payment payment = new Payment(UUID.randomUUID().toString() ,orderRequest.getCustomerId(), orderRequest.getOrderId(),
                 1000 , isPaymentSuccessful ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED","Cash");
         paymentRepository.save(payment);
+        logger.info("Save Process payment in payment DB");
         return true; // Simulate successful payment
     }
 
