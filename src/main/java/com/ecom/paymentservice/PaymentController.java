@@ -11,9 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -23,6 +22,9 @@ public class PaymentController
     private static final Logger logger = LoggerFactory.getLogger(PaymentController.class.getName());
     @Autowired
     PaymentRepository paymentRepository;
+
+    @Autowired
+    PaymentMapper paymentMapper;
 
     @Autowired
     Producer producer = new Producer();
@@ -43,40 +45,8 @@ public class PaymentController
         return ResponseEntity.ok("Details Updated Successfully");
     }
 
-    //@GetMapping("get/restros")
-    //public ResponseEntity<?> getRestros() throws InterruptedException
-    //{
-    //    Thread.sleep(1000);
-     //   return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-
-    //}
-
-    @GetMapping("/getAll")
-    public ResponseEntity<Payment> getProduct(@PathVariable String id) {
-        Payment payment = paymentRepository.getReferenceById(id);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-
-                //new ResponseEntity(product.get(0));
-                //product.map(ResponseEntity::ok)
-               // .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     public void publishPaymentMessage(String orderId) {
     }
-
-    /**** public void publishInventoryMessage(OrderRequest request) throws JsonProcessingException {
-        boolean isAvailable = checkProductAvailability(request.getProductId());
-        String status = isAvailable ? "INVENTORY_CONFIRMED" : "INVENTORY_FAILED";
-
-        // Publish order creation event
-        logger.info("Publish Inventory status event");
-        producer.publishInventoryMessage(request,  status);
-    }
-
-    public boolean checkProductAvailability(String productId) {
-        Optional<Inventory> inventory = inventoryRepository.findById(productId);
-        return inventory.isPresent(); // Simulate available product
-    } ***/
 
 
     public void checkAndPublishPaymentMessage(OrderRequest orderRequest,SagaState  sagaState) throws JsonProcessingException {
@@ -116,5 +86,45 @@ public class PaymentController
         payment.setStatus("ROLLBACK");
         paymentRepository.save(payment); **/
     }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAllPayments() {
+        try {
+            List<Payment> payments = paymentRepository.findAll();
+
+            if (payments.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No payments available.");
+            }
+
+            return ResponseEntity.ok(payments.stream()
+                    .map(paymentMapper::toPaymentView)
+                    .collect(Collectors.toList()));
+
+        } catch (Exception e) {
+            // Log the error (logging can be added here for production)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while fetching payments: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/all")
+    public List<PaymentView> fetchAllPayments() {
+        try {
+            List<Payment> payments = paymentRepository.findAll();
+
+            if (payments.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            return payments.stream()
+                    .map(paymentMapper::toPaymentView)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            // Log the error (logging can be added here for production)
+            return new ArrayList<>();
+        }
+    }
+
 
 }
